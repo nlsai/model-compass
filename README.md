@@ -1,37 +1,57 @@
 # Model Compass
 
-A static web app for comparing text-capable AI models. It uses OpenRouter's public model catalog for provider descriptions, listed token rates, context windows and supported parameters. Two local Ollama options and a small set of editorial ratings are included.
+Model Compass is a model-discovery and comparison app for coding, chatbots, agents and automation. It displays live OpenRouter catalog data, provides filters and a three-model comparison, and estimates text-token costs for a workload. It also includes two curated local model options.
 
-## Run locally
+The standalone application has **no ChatGPT login, API key, account or backend**. The browser fetches public model metadata from OpenRouter; it does not send prompts or execute models. The separate ChatGPT-hosted preview can still have its own access controls.
 
-Python 3 is sufficient; there is no build or install step:
+## Start locally (macOS, Linux or Windows)
+
+Install Python 3.9 or newer and Git, then run:
 
 ```bash
-python3 -m http.server 8000
+git clone https://github.com/nlsai/model-compass.git
+cd model-compass
+python3 serve.py
 ```
 
-Open `http://localhost:8000`. The app fetches `https://openrouter.ai/api/v1/models` directly from the visitor's browser. If the feed cannot be loaded, it shows a dated, limited fallback shortlist. No model API key is required to browse.
+On Windows, use `py serve.py` if `python3` is unavailable. Open **http://127.0.0.1:8000** on the same computer. Press `Ctrl+C` in the terminal to stop the server. To choose another port, use `python3 serve.py --port 8081`.
 
-Run checks with Node.js 18 or newer:
+The local server only binds to `127.0.0.1` by default and only serves the application files and `/healthz`. It uses the Python standard library with no package installation. It is intended for local demonstrations and development; use a production static web server for a public deployment. Explicitly binding to another interface exposes this unauthenticated app to people who can reach it. Use a protected network or add appropriate access controls before doing so.
+
+## Docker deployment
+
+With Docker and the Compose plugin installed:
 
 ```bash
+docker compose up --build -d
+```
+
+Open **http://127.0.0.1:8080**. Stop with `docker compose down`. The included container uses an unprivileged NGINX image, allows only the app assets and health endpoint, and serves a Content Security Policy. Compose binds to localhost by default. For a client-facing deployment, put it behind a properly configured HTTPS reverse proxy and add access control if needed. Evaluate network, logging, monitoring, patching and operational requirements for your environment before exposing it. Docker builds require network access to download the base image.
+
+## Tests
+
+Requires Python 3 and Node.js 18 or newer:
+
+```bash
+python3 -m unittest discover -s tests -p 'test_*.py'
 node --test tests/catalog.test.cjs
 ```
 
-## How comparisons work
+The automated tests cover model loading, price formatting and filtering, a catalog failure fallback, escaping, estimates, sorting, local HTTP responses, security headers and blocking non-app files. Browser testing is still needed on the operating systems and devices you intend to support.
 
-- Search or filter by price, task, location, minimum context and tool support; sort by context, price or name. Select up to three models to compare. Enter a monthly request volume and input/output token estimates to compare projected text-token costs.
-- OpenRouter prices are displayed in USD per million input/output tokens. Additional charges, provider-specific pricing and actual usage may change the final bill. A zero text-token rate does not guarantee that other modalities or requests are free.
-- Local model files incur hardware, electricity and maintenance costs. Context values are advertised limits; actual useful context can be lower.
-- Fit ratings are subjective editorial estimates for a small reviewed subset, not comparable benchmark scores. Many models are unranked. A top fit is only the highest within that reviewed subset.
-- Data covers OpenRouter text-capable models and two curated local entries, not every AI model or provider. Free availability, terms, prices and model details can change. Check the linked provider before making decisions.
+## How to use it
 
-## Deploy and access
+1. Choose your use case, location, price and other filters. Search by name or provider.
+2. Select up to three models and use the comparison tray.
+3. Enter a monthly workload to compare estimated input and output token costs.
+4. Check the linked provider's current pricing, quota, endpoint capabilities and data handling before making a decision.
 
-Serve `index.html` over HTTPS from a static host. Access control is the responsibility of that host. This repository contains no authentication, payment, analytics, or server-side API key handling. Publishing on a public host makes the app public; use a private repository and access-controlled hosting when privacy is required. The browser connects directly to OpenRouter for catalog metadata, revealing the visitor's network address to that service. Consult its privacy policy before a wider launch.
+### Important limits
+
+- The catalog covers OpenRouter text-input, text-output models and two curated local options. It is not a complete inventory of every provider or model type. The live feed requires internet access and can change; when unavailable, the app shows a limited, dated fallback.
+- Prices are listed in USD per million text tokens. Other charges, provider routing, credit fees, caching, modalities, and usage can change the bill. A zero text-token rate does not make all usage free. Free quotas may be insufficient for the estimated workload.
+- The suggested fit scores are rule-based, subjective editorial estimates for a small subset, not measured benchmarks. Many models are unranked. A suggestion is not a claim about the best model overall.
+- Context values and tool-calling metadata are provider-advertised. Verify actual endpoint support. Local models incur hardware and operating costs.
+- Model Compass is a comparison prototype, not an autonomous agent or a model execution service. It is not independently benchmarked or certified for production. Before a wider release, validate benchmarks, data and provider terms, accessibility, security, load handling, monitoring, backups and operating procedures.
 
 A practical [investor demo guide](docs/INVESTOR_DEMO.md) is included.
-
-## Before a public product launch
-
-The app is a functional prototype, not a verified production service. Validate rankings using documented benchmarks and representative tasks; review accessibility, cross-browser behavior, provider terms, privacy disclosures, data freshness and error monitoring for the intended audience. Paid model quality has not been independently rated. The estimator excludes additional fees and does not guarantee free capacity. No uptime or model-availability guarantee is provided. The guided recommendation is deterministic; it does not call an AI agent.

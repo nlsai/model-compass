@@ -2,11 +2,10 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const html = fs.readFileSync(require('node:path').join(__dirname, '..', 'index.html'), 'utf8');
-const script = html.split('<script>')[1].split('</script>')[0];
+const script = fs.readFileSync(require('node:path').join(__dirname, '..', 'assets', 'app.js'), 'utf8');
 function start(fetchImpl) {
   const defaults = {task:'coding',location:'any',context:'0',integration:'any',priority:'quality',price:'all',sort:'fit',requests:'10000',inputTokens:'2000',outputTokens:'500',search:''};
-  const elements = Object.fromEntries(['task','location','context','integration','priority','price','sort','requests','inputTokens','outputTokens','search','catalog-status','count','recommendation','cards','more','table','reset'].map(id => [id, {
+  const elements = Object.fromEntries(['task','location','context','integration','priority','price','sort','requests','inputTokens','outputTokens','search','catalog-status','count','recommendation','cards','more','table','reset','refresh','clear-selection','compare-bar','selection-text'].map(id => [id, {
     value: defaults[id] || '', innerHTML:'', textContent:'', style:{}, selectedIndex:0,
     listeners:{}, addEventListener(name, fn){ this.listeners[name]=fn; }, querySelectorAll(){ return []; }
   }]));
@@ -90,4 +89,15 @@ test('excludes models without text input or output', async () => {
   await settle();
   assert.doesNotMatch(elements.cards.innerHTML,/Image Only/);
   assert.match(elements.cards.innerHTML,/Text Model/);
+});
+
+test('a failed refresh switches from live results to the labeled fallback', async () => {
+  let calls=0;
+  const {ctx,elements}=start(async()=>{calls++;if(calls>1)throw Error('offline');return {ok:true,json:async()=>({data:[fakeModel('maker/pro','0.000003','0.000015','Live Model')]})}});
+  await settle();
+  assert.match(elements.cards.innerHTML,/Live Model/);
+  await vm.runInContext('refreshCatalog()',ctx);
+  assert.match(elements['catalog-status'].textContent,/SNAPSHOT/);
+  assert.doesNotMatch(elements.cards.innerHTML,/Live Model/);
+  assert.match(elements.cards.innerHTML,/North Mini Code/);
 });

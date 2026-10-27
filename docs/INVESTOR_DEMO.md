@@ -2,7 +2,7 @@
 
 ## Before the meeting
 
-1. Open the private hosted app and sign in on the device you will use. The hosted site is owner-only; demonstrate it by sharing your screen. The public GitHub repository is source code, not the hosted app. Do not change the website's access without the owner's approval.
+1. For a no-login demo, run `python3 serve.py` from the repository and open `http://127.0.0.1:8000` on the presentation device. The separate ChatGPT-hosted preview is owner-only. The public GitHub repository is source code, not the hosted app.
 2. Check the catalog status near the top of the page. If it says live, model metadata comes from OpenRouter. If it says snapshot, explain that the feed could not be loaded and the fallback is limited and dated.
 3. Confirm your internet connection. Rehearse the search and comparison below because model availability and prices may change.
 
@@ -23,4 +23,4 @@ Model Compass is an early model-discovery and comparison prototype. It uses a li
 - If the catalog shows a snapshot, say so; free availability and provider details may have changed. Open the provider links to verify.
 - If a model is unranked, do not invent a quality score; compare available specifications instead.
 - If a spend estimate says “Enter valid workload”, use non-negative whole numbers within the field limits.
-- If the hosted page asks an investor to sign in, screen share from the owner account. Public GitHub visibility does not grant access to the private hosted app.
+- Use the locally running app on the presentation device. The local server is unauthenticated and bound to that device by default; share your screen for a remote meeting.

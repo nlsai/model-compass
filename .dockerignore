@@ -1,0 +1,6 @@
+.git
+.openai
+__pycache__
+tests
+docs
+*.zip
