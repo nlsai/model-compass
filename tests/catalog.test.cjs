@@ -57,3 +57,37 @@ test('estimates monthly usage and flags variable pricing', async () => {
   elements.requests.value='0';
   assert.equal(vm.runInContext("estimate(models.find(m=>m.cmd==='maker/pro'))",ctx),'$0');
 });
+
+test('invalid workload does not appear as a free estimate', async () => {
+  const {ctx,elements}=start(async()=>({ok:true,json:async()=>({data:[fakeModel('maker/pro','0.000003','0.000015','Pro One')]})}));
+  await settle();
+  for (const input of ['', '-1', '1.5', '100000001']) {
+    elements.requests.value=input;
+    assert.equal(vm.runInContext("estimate(models.find(m=>m.cmd==='maker/pro'))",ctx),'Enter valid workload');
+  }
+});
+
+test('unknown prices remain unquoted and cannot appear in free filter', async () => {
+  const model=fakeModel('maker/unknown', null, null, 'Unknown Rate');
+  const {ctx,elements}=start(async()=>({ok:true,json:async()=>({data:[model]})}));
+  await settle();
+  assert.equal(vm.runInContext("estimate(models.find(m=>m.cmd==='maker/unknown'))",ctx),'Check provider');
+  elements.price.value='free';vm.runInContext('render()',ctx);
+  assert.doesNotMatch(elements.cards.innerHTML,/Unknown Rate/);
+});
+
+test('sorts paid models by input price and does not imply a quality ranking', async () => {
+  const {ctx,elements}=start(async()=>({ok:true,json:async()=>({data:[fakeModel('vendor/expensive','0.00002','0.00001','Costly'),fakeModel('vendor/cheap','0.000001','0.00001','Budget')]})}));
+  await settle();
+  elements.location.value='hosted';elements.price.value='paid';elements.sort.value='input';vm.runInContext('render()',ctx);
+  assert.ok(elements.cards.innerHTML.indexOf('Budget') < elements.cards.innerHTML.indexOf('Costly'));
+  assert.match(elements.recommendation.innerHTML,/not been rated/);
+});
+
+test('excludes models without text input or output', async () => {
+  const wrong=fakeModel('vendor/image','0','0','Image Only');wrong.architecture.output_modalities=['image'];
+  const {elements}=start(async()=>({ok:true,json:async()=>({data:[wrong,fakeModel('vendor/text','0.000001','0.000001','Text Model')]})}));
+  await settle();
+  assert.doesNotMatch(elements.cards.innerHTML,/Image Only/);
+  assert.match(elements.cards.innerHTML,/Text Model/);
+});

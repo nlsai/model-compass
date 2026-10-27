@@ -30,6 +30,8 @@ node --test tests/catalog.test.cjs
 
 Serve `index.html` over HTTPS from a static host. Access control is the responsibility of that host. This repository contains no authentication, payment, analytics, or server-side API key handling. Publishing on a public host makes the app public; use a private repository and access-controlled hosting when privacy is required. The browser connects directly to OpenRouter for catalog metadata, revealing the visitor's network address to that service. Consult its privacy policy before a wider launch.
 
+A practical [investor demo guide](docs/INVESTOR_DEMO.md) is included.
+
 ## Before a public product launch
 
 The app is a functional prototype, not a verified production service. Validate rankings using documented benchmarks and representative tasks; review accessibility, cross-browser behavior, provider terms, privacy disclosures, data freshness and error monitoring for the intended audience. Paid model quality has not been independently rated. The estimator excludes additional fees and does not guarantee free capacity. No uptime or model-availability guarantee is provided. The guided recommendation is deterministic; it does not call an AI agent.
